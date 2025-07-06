@@ -1,9 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Get environment variables with fallbacks for development
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Validate that required environment variables are present
+if (!supabaseUrl) {
+  console.error('Missing EXPO_PUBLIC_SUPABASE_URL environment variable');
+}
+
+if (!supabaseKey) {
+  console.error('Missing EXPO_PUBLIC_SUPABASE_ANON_KEY environment variable');
+}
+
+// Create Supabase client with error handling
+export const supabase = supabaseUrl && supabaseKey 
+  ? createClient(supabaseUrl, supabaseKey)
+  : null;
 
 // أنواع البيانات
 export interface Device {
@@ -56,6 +69,11 @@ export const deviceService = {
   // جلب جميع الأجهزة
   async getDevices() {
     try {
+      if (!supabase) {
+        console.warn('Supabase client not initialized');
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('devices')
         .select('*')
@@ -75,6 +93,11 @@ export const deviceService = {
   // جلب الأجهزة حسب الحالة
   async getDevicesByStatus(status: string) {
     try {
+      if (!supabase) {
+        console.warn('Supabase client not initialized');
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('devices')
         .select('*')
@@ -95,6 +118,10 @@ export const deviceService = {
   // إضافة جهاز جديد
   async createDevice(device: Omit<Device, 'id' | 'created_at' | 'updated_at' | 'remaining_amount'>) {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client not initialized');
+      }
+
       const { data, error } = await supabase
         .from('devices')
         .insert([device])
@@ -115,6 +142,10 @@ export const deviceService = {
   // تحديث جهاز
   async updateDevice(id: string, updates: Partial<Device>) {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client not initialized');
+      }
+
       const { data, error } = await supabase
         .from('devices')
         .update({ ...updates, updated_at: new Date().toISOString() })
@@ -136,6 +167,10 @@ export const deviceService = {
   // حذف جهاز
   async deleteDevice(id: string) {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client not initialized');
+      }
+
       const { error } = await supabase
         .from('devices')
         .delete()
@@ -154,6 +189,10 @@ export const deviceService = {
   // تحديث حالة الجهاز
   async updateDeviceStatus(id: string, status: Device['status'], notes?: string) {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client not initialized');
+      }
+
       const updates: any = { status };
       if (notes) updates.repair_notes = notes;
       
@@ -180,6 +219,11 @@ export const statisticsService = {
   // حساب الدخل اليومي
   async getDailyIncome(date?: string) {
     try {
+      if (!supabase) {
+        console.warn('Supabase client not initialized');
+        return 0;
+      }
+
       const targetDate = date || new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
         .rpc('calculate_daily_income', { target_date: targetDate });
@@ -198,6 +242,11 @@ export const statisticsService = {
   // جلب أكثر الأعطال شيوعاً
   async getMostCommonIssues(limit: number = 10): Promise<CommonIssue[]> {
     try {
+      if (!supabase) {
+        console.warn('Supabase client not initialized');
+        return [];
+      }
+
       const { data, error } = await supabase
         .rpc('get_most_common_issues', { limit_count: limit });
       
@@ -215,6 +264,11 @@ export const statisticsService = {
   // جلب أكثر الأجهزة شيوعاً
   async getMostCommonDevices(limit: number = 10): Promise<CommonDevice[]> {
     try {
+      if (!supabase) {
+        console.warn('Supabase client not initialized');
+        return [];
+      }
+
       const { data, error } = await supabase
         .rpc('get_most_common_devices', { limit_count: limit });
       
@@ -232,6 +286,17 @@ export const statisticsService = {
   // حساب الإحصائيات العامة
   async getOverallStats() {
     try {
+      if (!supabase) {
+        console.warn('Supabase client not initialized');
+        return {
+          pending: 0,
+          repaired: 0,
+          cannot_repair: 0,
+          delivered: 0,
+          total: 0
+        };
+      }
+
       const { data, error } = await supabase
         .from('devices')
         .select('status');
@@ -279,6 +344,10 @@ export const authService = {
   // تسجيل الدخول
   async signIn(email: string, password: string) {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client not initialized');
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -298,6 +367,10 @@ export const authService = {
   // تسجيل حساب جديد
   async signUp(email: string, password: string, fullName: string) {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client not initialized');
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -322,6 +395,10 @@ export const authService = {
   // تسجيل الخروج
   async signOut() {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client not initialized');
+      }
+
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Error signing out:', error);
@@ -336,6 +413,11 @@ export const authService = {
   // جلب المستخدم الحالي
   async getCurrentUser() {
     try {
+      if (!supabase) {
+        console.warn('Supabase client not initialized');
+        return null;
+      }
+
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error) {
         console.warn('Warning getting current user:', error);
