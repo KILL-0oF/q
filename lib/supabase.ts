@@ -4,17 +4,20 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
-// Validate that required environment variables are present
-if (!supabaseUrl) {
-  console.error('Missing EXPO_PUBLIC_SUPABASE_URL environment variable');
+// Validate that required environment variables are present and not placeholder values
+const isValidUrl = supabaseUrl && supabaseUrl !== 'https://your-project-id.supabase.co' && supabaseUrl !== 'https://placeholder.supabase.co';
+const isValidKey = supabaseKey && supabaseKey !== 'your-anon-key-here' && supabaseKey !== 'placeholder-key';
+
+if (!supabaseUrl || !isValidUrl) {
+  console.error('Missing or invalid EXPO_PUBLIC_SUPABASE_URL environment variable. Please update your .env file with your actual Supabase project URL.');
 }
 
-if (!supabaseKey) {
-  console.error('Missing EXPO_PUBLIC_SUPABASE_ANON_KEY environment variable');
+if (!supabaseKey || !isValidKey) {
+  console.error('Missing or invalid EXPO_PUBLIC_SUPABASE_ANON_KEY environment variable. Please update your .env file with your actual Supabase anon key.');
 }
 
 // Create Supabase client with error handling
-export const supabase = supabaseUrl && supabaseKey 
+export const supabase = (isValidUrl && isValidKey) 
   ? createClient(supabaseUrl, supabaseKey)
   : null;
 
@@ -70,7 +73,7 @@ export const deviceService = {
   async getDevices() {
     try {
       if (!supabase) {
-        console.warn('Supabase client not initialized');
+        console.warn('Supabase client not initialized. Please check your environment variables.');
         return [];
       }
 
@@ -94,7 +97,7 @@ export const deviceService = {
   async getDevicesByStatus(status: string) {
     try {
       if (!supabase) {
-        console.warn('Supabase client not initialized');
+        console.warn('Supabase client not initialized. Please check your environment variables.');
         return [];
       }
 
@@ -119,7 +122,7 @@ export const deviceService = {
   async createDevice(device: Omit<Device, 'id' | 'created_at' | 'updated_at' | 'remaining_amount'>) {
     try {
       if (!supabase) {
-        throw new Error('Supabase client not initialized');
+        throw new Error('Supabase client not initialized. Please check your environment variables.');
       }
 
       const { data, error } = await supabase
@@ -143,7 +146,7 @@ export const deviceService = {
   async updateDevice(id: string, updates: Partial<Device>) {
     try {
       if (!supabase) {
-        throw new Error('Supabase client not initialized');
+        throw new Error('Supabase client not initialized. Please check your environment variables.');
       }
 
       const { data, error } = await supabase
@@ -168,7 +171,7 @@ export const deviceService = {
   async deleteDevice(id: string) {
     try {
       if (!supabase) {
-        throw new Error('Supabase client not initialized');
+        throw new Error('Supabase client not initialized. Please check your environment variables.');
       }
 
       const { error } = await supabase
@@ -190,7 +193,7 @@ export const deviceService = {
   async updateDeviceStatus(id: string, status: Device['status'], notes?: string) {
     try {
       if (!supabase) {
-        throw new Error('Supabase client not initialized');
+        throw new Error('Supabase client not initialized. Please check your environment variables.');
       }
 
       const updates: any = { status };
@@ -220,7 +223,7 @@ export const statisticsService = {
   async getDailyIncome(date?: string) {
     try {
       if (!supabase) {
-        console.warn('Supabase client not initialized');
+        console.warn('Supabase client not initialized. Please check your environment variables.');
         return 0;
       }
 
@@ -243,7 +246,7 @@ export const statisticsService = {
   async getMostCommonIssues(limit: number = 10): Promise<CommonIssue[]> {
     try {
       if (!supabase) {
-        console.warn('Supabase client not initialized');
+        console.warn('Supabase client not initialized. Please check your environment variables.');
         return [];
       }
 
@@ -265,7 +268,7 @@ export const statisticsService = {
   async getMostCommonDevices(limit: number = 10): Promise<CommonDevice[]> {
     try {
       if (!supabase) {
-        console.warn('Supabase client not initialized');
+        console.warn('Supabase client not initialized. Please check your environment variables.');
         return [];
       }
 
@@ -287,7 +290,7 @@ export const statisticsService = {
   async getOverallStats() {
     try {
       if (!supabase) {
-        console.warn('Supabase client not initialized');
+        console.warn('Supabase client not initialized. Please check your environment variables.');
         return {
           pending: 0,
           repaired: 0,
@@ -345,7 +348,7 @@ export const authService = {
   async signIn(email: string, password: string) {
     try {
       if (!supabase) {
-        throw new Error('Supabase client not initialized');
+        throw new Error('Supabase client not initialized. Please check your environment variables.');
       }
 
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -368,7 +371,7 @@ export const authService = {
   async signUp(email: string, password: string, fullName: string) {
     try {
       if (!supabase) {
-        throw new Error('Supabase client not initialized');
+        throw new Error('Supabase client not initialized. Please check your environment variables.');
       }
 
       const { data, error } = await supabase.auth.signUp({
@@ -396,7 +399,7 @@ export const authService = {
   async signOut() {
     try {
       if (!supabase) {
-        throw new Error('Supabase client not initialized');
+        throw new Error('Supabase client not initialized. Please check your environment variables.');
       }
 
       const { error } = await supabase.auth.signOut();
@@ -414,7 +417,7 @@ export const authService = {
   async getCurrentUser() {
     try {
       if (!supabase) {
-        console.warn('Supabase client not initialized');
+        console.warn('Supabase client not initialized. Please check your environment variables.');
         return null;
       }
 
