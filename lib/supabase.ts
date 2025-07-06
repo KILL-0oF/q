@@ -9,17 +9,17 @@ const isValidUrl = supabaseUrl && supabaseUrl !== 'https://your-project-id.supab
 const isValidKey = supabaseKey && supabaseKey !== 'your-anon-key-here' && supabaseKey !== 'placeholder-key';
 
 if (!supabaseUrl || !isValidUrl) {
-  console.error('Missing or invalid EXPO_PUBLIC_SUPABASE_URL environment variable. Please update your .env file with your actual Supabase project URL.');
+  console.warn('Missing or invalid EXPO_PUBLIC_SUPABASE_URL environment variable. Please update your .env file with your actual Supabase project URL.');
 }
 
 if (!supabaseKey || !isValidKey) {
-  console.error('Missing or invalid EXPO_PUBLIC_SUPABASE_ANON_KEY environment variable. Please update your .env file with your actual Supabase anon key.');
+  console.warn('Missing or invalid EXPO_PUBLIC_SUPABASE_ANON_KEY environment variable. Please update your .env file with your actual Supabase anon key.');
 }
 
-// Create Supabase client with error handling
+// Create Supabase client with error handling - use dummy values for development if real ones aren't available
 export const supabase = (isValidUrl && isValidKey) 
   ? createClient(supabaseUrl, supabaseKey)
-  : null;
+  : createClient('https://dummy.supabase.co', 'dummy-key');
 
 // أنواع البيانات
 export interface Device {
@@ -72,8 +72,8 @@ export const deviceService = {
   // جلب جميع الأجهزة
   async getDevices() {
     try {
-      if (!supabase) {
-        console.warn('Supabase client not initialized. Please check your environment variables.');
+      if (!isValidUrl || !isValidKey) {
+        console.warn('Supabase client not properly configured. Please check your environment variables.');
         return [];
       }
 
@@ -96,8 +96,8 @@ export const deviceService = {
   // جلب الأجهزة حسب الحالة
   async getDevicesByStatus(status: string) {
     try {
-      if (!supabase) {
-        console.warn('Supabase client not initialized. Please check your environment variables.');
+      if (!isValidUrl || !isValidKey) {
+        console.warn('Supabase client not properly configured. Please check your environment variables.');
         return [];
       }
 
@@ -121,8 +121,8 @@ export const deviceService = {
   // إضافة جهاز جديد
   async createDevice(device: Omit<Device, 'id' | 'created_at' | 'updated_at' | 'remaining_amount'>) {
     try {
-      if (!supabase) {
-        throw new Error('Supabase client not initialized. Please check your environment variables.');
+      if (!isValidUrl || !isValidKey) {
+        throw new Error('Supabase client not properly configured. Please check your environment variables.');
       }
 
       const { data, error } = await supabase
@@ -145,8 +145,8 @@ export const deviceService = {
   // تحديث جهاز
   async updateDevice(id: string, updates: Partial<Device>) {
     try {
-      if (!supabase) {
-        throw new Error('Supabase client not initialized. Please check your environment variables.');
+      if (!isValidUrl || !isValidKey) {
+        throw new Error('Supabase client not properly configured. Please check your environment variables.');
       }
 
       const { data, error } = await supabase
@@ -170,8 +170,8 @@ export const deviceService = {
   // حذف جهاز
   async deleteDevice(id: string) {
     try {
-      if (!supabase) {
-        throw new Error('Supabase client not initialized. Please check your environment variables.');
+      if (!isValidUrl || !isValidKey) {
+        throw new Error('Supabase client not properly configured. Please check your environment variables.');
       }
 
       const { error } = await supabase
@@ -192,8 +192,8 @@ export const deviceService = {
   // تحديث حالة الجهاز
   async updateDeviceStatus(id: string, status: Device['status'], notes?: string) {
     try {
-      if (!supabase) {
-        throw new Error('Supabase client not initialized. Please check your environment variables.');
+      if (!isValidUrl || !isValidKey) {
+        throw new Error('Supabase client not properly configured. Please check your environment variables.');
       }
 
       const updates: any = { status };
@@ -222,8 +222,8 @@ export const statisticsService = {
   // حساب الدخل اليومي
   async getDailyIncome(date?: string) {
     try {
-      if (!supabase) {
-        console.warn('Supabase client not initialized. Please check your environment variables.');
+      if (!isValidUrl || !isValidKey) {
+        console.warn('Supabase client not properly configured. Please check your environment variables.');
         return 0;
       }
 
@@ -245,8 +245,8 @@ export const statisticsService = {
   // جلب أكثر الأعطال شيوعاً
   async getMostCommonIssues(limit: number = 10): Promise<CommonIssue[]> {
     try {
-      if (!supabase) {
-        console.warn('Supabase client not initialized. Please check your environment variables.');
+      if (!isValidUrl || !isValidKey) {
+        console.warn('Supabase client not properly configured. Please check your environment variables.');
         return [];
       }
 
@@ -267,8 +267,8 @@ export const statisticsService = {
   // جلب أكثر الأجهزة شيوعاً
   async getMostCommonDevices(limit: number = 10): Promise<CommonDevice[]> {
     try {
-      if (!supabase) {
-        console.warn('Supabase client not initialized. Please check your environment variables.');
+      if (!isValidUrl || !isValidKey) {
+        console.warn('Supabase client not properly configured. Please check your environment variables.');
         return [];
       }
 
@@ -289,8 +289,8 @@ export const statisticsService = {
   // حساب الإحصائيات العامة
   async getOverallStats() {
     try {
-      if (!supabase) {
-        console.warn('Supabase client not initialized. Please check your environment variables.');
+      if (!isValidUrl || !isValidKey) {
+        console.warn('Supabase client not properly configured. Please check your environment variables.');
         return {
           pending: 0,
           repaired: 0,
@@ -347,8 +347,8 @@ export const authService = {
   // تسجيل الدخول
   async signIn(email: string, password: string) {
     try {
-      if (!supabase) {
-        throw new Error('Supabase client not initialized. Please check your environment variables.');
+      if (!isValidUrl || !isValidKey) {
+        throw new Error('Supabase client not properly configured. Please check your environment variables.');
       }
 
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -370,8 +370,8 @@ export const authService = {
   // تسجيل حساب جديد
   async signUp(email: string, password: string, fullName: string) {
     try {
-      if (!supabase) {
-        throw new Error('Supabase client not initialized. Please check your environment variables.');
+      if (!isValidUrl || !isValidKey) {
+        throw new Error('Supabase client not properly configured. Please check your environment variables.');
       }
 
       const { data, error } = await supabase.auth.signUp({
@@ -398,8 +398,8 @@ export const authService = {
   // تسجيل الخروج
   async signOut() {
     try {
-      if (!supabase) {
-        throw new Error('Supabase client not initialized. Please check your environment variables.');
+      if (!isValidUrl || !isValidKey) {
+        throw new Error('Supabase client not properly configured. Please check your environment variables.');
       }
 
       const { error } = await supabase.auth.signOut();
@@ -416,8 +416,8 @@ export const authService = {
   // جلب المستخدم الحالي
   async getCurrentUser() {
     try {
-      if (!supabase) {
-        console.warn('Supabase client not initialized. Please check your environment variables.');
+      if (!isValidUrl || !isValidKey) {
+        console.warn('Supabase client not properly configured. Please check your environment variables.');
         return null;
       }
 
